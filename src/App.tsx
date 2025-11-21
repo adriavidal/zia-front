@@ -15,7 +15,7 @@ import {
   Upload,
 } from 'lucide-react';
 
-// --- Datos Simulados ---
+// --- Datos Simulados nuevos ---
 
 const MOCK_VOICES = [
   {
