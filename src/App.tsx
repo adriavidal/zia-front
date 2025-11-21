@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Mic,
   Users,
@@ -19,28 +19,39 @@ import {
 
 const MOCK_VOICES = [
   {
-    id: 'v1',
-    name: 'Lucía (Estándar)',
-    gender: 'female',
+    id: 'aura-2-alvaro-es',
+    name: 'Alvaro',
+    gender: 'male',
     tone: 'Profesional y Cálida',
+    text: 'Hola soy Alvaro en que puedo ayudarte.'
   },
   {
-    id: 'v2',
-    name: 'Sofía (Joven)',
+    id: 'aura-2-carina-es',
+    name: 'Carina',
     gender: 'female',
-    tone: 'Energética y Rápida',
+    tone: 'Seria y Directa',
+    text: 'Hola soy Carina en que puedo ayudarte.'
   },
   {
-    id: 'v3',
-    name: 'Mateo (Corporativo)',
-    gender: 'male',
-    tone: 'Serio y Directo',
+    id: 'aura-2-diana-es',
+    name: 'diana',
+    gender: 'female',
+    tone: 'Elegante y Sofisticada',
+    text: 'Hola soy Diana en que puedo ayudarte.'
   },
   {
-    id: 'v4',
-    name: 'Javier (Amigable)',
+    id: 'aura-2-celeste-es',
+    name: 'Celeste',
+    gender: 'female',
+    tone: 'Dulce y Amigable',
+    text: 'Hola soy Celeste en que puedo ayudarte.'
+  },
+  {
+    id: 'aura-2-nestor-es',
+    name: 'nestor',
     gender: 'male',
-    tone: 'Relajado y Empático',
+    tone: 'Autoritaria y Fuerte',
+    text: 'Hola soy Zeus en que puedo ayudarte.'
   },
 ];
 
@@ -49,7 +60,7 @@ const INITIAL_PROFILES = [
     id: 1,
     phoneNumber: '+34 91 123 45 67',
     label: 'Sede Central - Madrid',
-    voiceId: 'v1',
+    voiceId: 'aura-2-luna-es',
     welcomeMessage:
       'Hola, bienvenido a Zerovoz Soy Zia, su asistente virtual. Por favor, dígame brevemente el motivo de su llamada o el nombre de la persona con la que desea contactar.',
     contacts: [
@@ -62,7 +73,7 @@ const INITIAL_PROFILES = [
     id: 2,
     phoneNumber: '+34 93 987 65 43',
     label: 'Oficina Comercial - Barcelona',
-    voiceId: 'v3',
+    voiceId: 'aura-2-zeus-es',
     welcomeMessage:
       'Gracias por llamar a la delegación de Barcelona. Soy su operador virtual. ¿En qué puedo ayudarle hoy?',
     contacts: [
@@ -140,6 +151,56 @@ const ConfigPanel = ({
   const activeProfile =
     profiles.find((p: any) => p.id === activeProfileId) || profiles[0];
   const [isPlaying, setIsPlaying] = useState(false);
+  const [voiceTexts, setVoiceTexts] = useState(
+    MOCK_VOICES.reduce((acc, voice) => ({ ...acc, [voice.id]: voice.text }), {})
+  );
+  const [genderFilter, setGenderFilter] = useState('all');
+  const [selectedVoiceId, setSelectedVoiceId] = useState(activeProfile.voiceId);
+  const [voices, setVoices] = useState(MOCK_VOICES);
+
+  // Update voice texts when voices change
+  React.useEffect(() => {
+    setVoiceTexts(prev => {
+      const newTexts = { ...prev };
+      voices.forEach(voice => {
+        if (!newTexts[voice.id]) {
+          newTexts[voice.id] = voice.text;
+        }
+      });
+      return newTexts;
+    });
+  }, [voices]);
+
+  // Fetch voices from Deepgram API
+  const fetchVoices = async () => {
+    try {
+      const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
+      const response = await fetch('https://api.deepgram.com/v1/models?model_family=tts', {
+        headers: {
+          'Authorization': `Token ${apiKey}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const ttsVoices = data.models.map((model: any) => ({
+          id: model.name,
+          name: model.name,
+          gender: model.name.includes('luna') || model.name.includes('stella') || model.name.includes('hera') || model.name.includes('diana') || model.name.includes('asteria') ? 'female' : 'male',
+          tone: 'AI Voice',
+          text: `Hola soy ${model.name} en que puedo ayudarte.`
+        }));
+        setVoices(ttsVoices);
+      }
+    } catch (error) {
+      console.error('Error fetching voices:', error);
+    }
+  };
+
+  // Fetch voices on component mount
+  React.useEffect(() => {
+    fetchVoices();
+  }, []);
 
   // Estado local para el formulario de nuevo contacto
   const [newContact, setNewContact] = useState({ name: '', dept: '', ext: '' });
@@ -216,21 +277,63 @@ const ConfigPanel = ({
     event.target.value = '';
   };
 
-  const playVoicePreview = (text: string, voiceId: string) => {
-    // Simulación de TTS usando la API del navegador
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      // Intentamos ajustar tono (simulado)
-      if (voiceId === 'v3' || voiceId === 'v4') utterance.pitch = 0.8; // Más grave para hombre
-      if (voiceId === 'v1' || voiceId === 'v2') utterance.pitch = 1.2; // Más agudo para mujer
-      utterance.rate = 1.0;
-
+  const playVoicePreview = async (text: string, voiceId: string) => {
+    try {
       setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('Tu navegador no soporta síntesis de voz para la demo.');
+      
+      const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
+      console.log('API Key exists:', !!apiKey);
+      console.log('API Key length:', apiKey?.length || 0);
+      
+      const headers = {
+        'Authorization': `Token ${apiKey}`,
+        'Content-Type': 'application/json',
+      };
+      
+      console.log('Request headers:', headers);
+      console.log('Request URL:', `https://api.deepgram.com/v1/speak?model=${voiceId}&encoding=linear16&sample_rate=24000`);
+      
+      // Demo usando Deepgram Aura API
+      const response = await fetch(`https://api.deepgram.com/v1/speak?model=${voiceId}&encoding=linear16&sample_rate=24000`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          text: text,
+        }),
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        await audio.play();
+      } else {
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setIsPlaying(false);
+      // Fallback al navegador
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.onend = () => setIsPlaying(false);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert('Error al reproducir audio. Configure su API key de Deepgram.');
+      }
     }
   };
 
@@ -294,57 +397,124 @@ const ConfigPanel = ({
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {MOCK_VOICES.map((voice) => (
-                <div
-                  key={voice.id}
-                  onClick={() => updateProfile('voiceId', voice.id)}
-                  className={`cursor-pointer relative p-4 rounded-lg border-2 flex items-center justify-between transition-all ${
-                    activeProfile.voiceId === voice.id
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-slate-100 hover:border-slate-300'
+            <div className="space-y-4">
+              {/* Gender Filter */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setGenderFilter('all')}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    genderFilter === 'all'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-slate-100 text-slate-600'
                   }`}
                 >
-                  <div>
-                    <div className="font-bold text-slate-700">{voice.name}</div>
-                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          voice.gender === 'female'
-                            ? 'bg-pink-400'
-                            : 'bg-blue-400'
-                        }`}
-                      ></span>
-                      {voice.tone}
+                  Todas
+                </button>
+                <button
+                  onClick={() => setGenderFilter('female')}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    genderFilter === 'female'
+                      ? 'bg-pink-100 text-pink-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  Femeninas
+                </button>
+                <button
+                  onClick={() => setGenderFilter('male')}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    genderFilter === 'male'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  Masculinas
+                </button>
+              </div>
+
+              {/* Voice Selector */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Seleccionar Voz
+                </label>
+                <select
+                  value={activeProfile.voiceId}
+                  onChange={(e) => {
+                    updateProfile('voiceId', e.target.value);
+                    setSelectedVoiceId(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-1 focus:ring-indigo-500"
+                >
+                  {voices
+                    .filter(voice => genderFilter === 'all' || voice.gender === genderFilter)
+                    .map((voice) => (
+                      <option key={voice.id} value={voice.id}>
+                        {voice.name} - {voice.tone}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Selected Voice Preview */}
+              {(() => {
+                const selectedVoice = voices.find(v => v.id === activeProfile.voiceId);
+                if (!selectedVoice) return null;
+                
+                return (
+                  <div className="p-4 rounded-lg border border-indigo-200 bg-indigo-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-3 h-3 rounded-full ${
+                            selectedVoice.gender === 'female'
+                              ? 'bg-pink-400'
+                              : 'bg-blue-400'
+                          }`}
+                        ></span>
+                        <div>
+                          <div className="font-bold text-slate-700">{selectedVoice.name}</div>
+                          <div className="text-xs text-slate-500">{selectedVoice.tone}</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          playVoicePreview(
+                            voiceTexts[selectedVoice.id] || selectedVoice.text,
+                            selectedVoice.id
+                          );
+                        }}
+                        className="p-2 bg-white rounded-full shadow-sm text-slate-600 hover:text-indigo-600 border border-slate-200"
+                      >
+                        {isPlaying ? (
+                          <Activity
+                            size={16}
+                            className="animate-pulse text-indigo-600"
+                          />
+                        ) : (
+                          <Play size={16} />
+                        )}
+                      </button>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
+                        Mensaje de prueba
+                      </label>
+                      <input
+                        type="text"
+                        value={voiceTexts[selectedVoice.id] || selectedVoice.text}
+                        onChange={(e) => {
+                          setVoiceTexts(prev => ({
+                            ...prev,
+                            [selectedVoice.id]: e.target.value
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-1 focus:ring-indigo-500"
+                        placeholder="Texto para probar la voz..."
+                      />
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playVoicePreview(
-                        'Hola, soy Zia. Esta es una prueba de mi voz.',
-                        voice.id
-                      );
-                    }}
-                    className="p-2 bg-white rounded-full shadow-sm text-slate-600 hover:text-indigo-600 border border-slate-200"
-                  >
-                    {isPlaying && activeProfile.voiceId === voice.id ? (
-                      <Activity
-                        size={18}
-                        className="animate-pulse text-indigo-600"
-                      />
-                    ) : (
-                      <Play size={18} />
-                    )}
-                  </button>
-
-                  {activeProfile.voiceId === voice.id && (
-                    <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
-                      <span className="flex h-4 w-4 bg-indigo-600 rounded-full border-2 border-white"></span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })()}
             </div>
           </div>
 
