@@ -56,7 +56,7 @@ const INITIAL_PROFILES = [
     label: 'Sede Central - Madrid',
     voiceId: 'v1',
     welcomeMessage:
-      'Hola, bienvenido a TechSolutions. Soy Zia, su asistente virtual. Por favor, dígame brevemente el motivo de su llamada o el nombre de la persona con la que desea contactar.',
+      'Hola, bienvenido a Zerovoz Soy Zia, su asistente virtual. Por favor, dígame brevemente el motivo de su llamada o el nombre de la persona con la que desea contactar.',
     contacts: [
       { id: 101, name: 'Ana García', dept: 'Ventas', ext: '1001' },
       { id: 102, name: 'Carlos Ruiz', dept: 'Soporte', ext: '1002' },
@@ -123,17 +123,17 @@ const MOCK_LOGS = [
 // --- Componentes ---
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
-  <button
+  <div
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+    className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors cursor-pointer ${
       active
-        ? 'bg-indigo-600 text-white'
+        ? 'bg-indigo-500 text-white'
         : 'text-slate-400 hover:bg-slate-800 hover:text-white'
     }`}
   >
-    <Icon size={20} />
-    <span className="font-medium">{label}</span>
-  </button>
+    <Icon size={18} />
+    <span className="text-sm hidden lg:block">{label}</span>
+  </div>
 );
 
 const ConfigPanel = ({
@@ -264,9 +264,7 @@ const ConfigPanel = ({
             </div>
           </button>
         ))}
-        <button className="mt-2 flex items-center justify-center gap-2 w-full py-2 border border-dashed border-slate-300 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors text-sm">
-          <Plus size={16} /> Añadir Nueva Línea
-        </button>
+
       </div>
 
       {/* Área Principal de Configuración */}
@@ -297,7 +295,7 @@ const ConfigPanel = ({
                 <Mic size={20} />
               </div>
               <h3 className="text-lg font-semibold text-slate-800">
-                Perfil de Voz
+                Perfil de Voz Bot
               </h3>
             </div>
 
@@ -394,7 +392,7 @@ const ConfigPanel = ({
                   <Users size={20} />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-800">
-                  Directorio de Contactos
+                  Directorio  Contactos
                 </h3>
               </div>
 
@@ -425,7 +423,7 @@ const ConfigPanel = ({
                   <tr>
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Departamento</th>
-                    <th className="px-4 py-3">Extensión / Móvil</th>
+                    <th className="px-4 py-3">Extensión </th>
                     <th className="px-4 py-3 text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -637,17 +635,17 @@ const App = () => {
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900">
       {/* Sidebar Global */}
-      <div className="w-20 lg:w-64 bg-slate-900 flex-shrink-0 flex flex-col text-white">
-        <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-800">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center mr-0 lg:mr-3">
-            <span className="font-bold text-lg">Z</span>
+      <div className="w-16 lg:w-56 bg-slate-950 flex-shrink-0 flex flex-col text-white">
+        <div className="h-14 flex items-center justify-center lg:justify-start lg:px-4">
+          <div className="w-7 h-7 bg-indigo-500 rounded flex items-center justify-center mr-0 lg:mr-2">
+            <span className="font-bold text-sm">Z</span>
           </div>
-          <span className="font-bold text-xl hidden lg:block tracking-tight">
-            Zia<span className="text-indigo-400">Admin</span>
+          <span className="font-semibold text-lg hidden lg:block">
+            Zia
           </span>
         </div>
 
-        <div className="flex-1 py-6 px-3 space-y-2">
+        <div className="flex-1 py-4 px-2 space-y-1">
           <SidebarItem
             icon={Settings}
             label="Configuración"
@@ -656,22 +654,10 @@ const App = () => {
           />
           <SidebarItem
             icon={Activity}
-            label="Logs de Llamadas"
+            label="Llamadas"
             active={view === 'logs'}
             onClick={() => setView('logs')}
           />
-          <div className="border-t border-slate-800 my-4"></div>
-          <SidebarItem icon={User} label="Mi Cuenta" onClick={() => {}} />
-        </div>
-
-        <div className="p-4 border-t border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-700"></div>
-            <div className="hidden lg:block">
-              <div className="text-sm font-medium">Admin Usuario</div>
-              <div className="text-xs text-slate-500">Pro Plan</div>
-            </div>
-          </div>
         </div>
       </div>
 
