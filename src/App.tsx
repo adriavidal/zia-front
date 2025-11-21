@@ -1,23 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
-  Phone,
   Mic,
   Users,
   MessageSquare,
   Activity,
   Save,
   Play,
-  Plus,
   Trash2,
   Search,
   Settings,
   Clock,
   PhoneIncoming,
   ArrowRightCircle,
-  Briefcase,
-  User,
   Upload,
-  FileText,
 } from 'lucide-react';
 
 // --- Datos Simulados ---
@@ -122,7 +117,7 @@ const MOCK_LOGS = [
 
 // --- Componentes ---
 
-const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
+const SidebarItem = ({ icon: Icon, label, active, onClick }: any) => (
   <div
     onClick={onClick}
     className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors cursor-pointer ${
@@ -141,17 +136,17 @@ const ConfigPanel = ({
   setProfiles,
   activeProfileId,
   setActiveProfileId,
-}) => {
+}: any) => {
   const activeProfile =
-    profiles.find((p) => p.id === activeProfileId) || profiles[0];
+    profiles.find((p: any) => p.id === activeProfileId) || profiles[0];
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Estado local para el formulario de nuevo contacto
   const [newContact, setNewContact] = useState({ name: '', dept: '', ext: '' });
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const updateProfile = (field, value) => {
-    const updatedProfiles = profiles.map((p) =>
+  const updateProfile = (field: any, value: any) => {
+    const updatedProfiles = profiles.map((p: any) =>
       p.id === activeProfileId ? { ...p, [field]: value } : p
     );
     setProfiles(updatedProfiles);
@@ -167,20 +162,20 @@ const ConfigPanel = ({
     setNewContact({ name: '', dept: '', ext: '' });
   };
 
-  const handleDeleteContact = (contactId) => {
+  const handleDeleteContact = (contactId: any) => {
     const updatedContacts = activeProfile.contacts.filter(
-      (c) => c.id !== contactId
+      (c: any) => c.id !== contactId
     );
     updateProfile('contacts', updatedContacts);
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = (event: any) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target.result;
+      const text = e.target?.result as string;
       // Parse CSV simple (asumiendo formato: Nombre, Departamento, Extensión)
       // Se salta la primera línea si parece ser encabezado
       const lines = text.split('\n');
@@ -221,7 +216,7 @@ const ConfigPanel = ({
     event.target.value = '';
   };
 
-  const playVoicePreview = (text, voiceId) => {
+  const playVoicePreview = (text: string, voiceId: string) => {
     // Simulación de TTS usando la API del navegador
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -246,7 +241,7 @@ const ConfigPanel = ({
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
           Líneas Activas
         </h3>
-        {profiles.map((profile) => (
+        {profiles.map((profile: any) => (
           <button
             key={profile.id}
             onClick={() => setActiveProfileId(profile.id)}
@@ -428,7 +423,7 @@ const ConfigPanel = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {activeProfile.contacts.map((contact) => (
+                  {activeProfile.contacts.map((contact: any) => (
                     <tr
                       key={contact.id}
                       className="bg-white border-b hover:bg-slate-50"
